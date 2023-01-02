@@ -23,13 +23,12 @@ class ZendeskMessagingPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     var isInitialize: Boolean = false
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-        val sendData: Any? = call.arguments
-        val zendeskMessaging = ZendeskMessaging(this, channel)
+        val zendeskMessaging = ZendeskMessaging(this, channel,result)
 
         when (call.method) {
             "initialize" -> {
                 if (isInitialize) {
-                    println("$tag - Messaging is already initialized!")
+                    result.error("error","$tag - Messaging is already initialized!",null)
                     return
                 }
                 val channelKey = call.argument<String>("channelKey")!!
@@ -37,45 +36,43 @@ class ZendeskMessagingPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
             "show" -> {
                 if (!isInitialize) {
-                    println("$tag - Messaging needs to be initialized first")
+                    result.error("error","$tag - Messaging needs to be initialized first",null)
                     return
                 }
                 zendeskMessaging.show()
             }
             "loginUser" -> {
                 if (!isInitialize) {
-                    println("$tag - Messaging needs to be initialized first")
+                    result.error("error","$tag - Messaging needs to be initialized first",null)
                     return
                 }
 
                 try {
                     val jwt = call.argument<String>("jwt")
                     if (jwt == null || jwt.isEmpty()) {
-                        throw Exception("JWT is empty or null")
+                        result.error("error","JWT is empty or null",null)
+                        return
                     }
                     zendeskMessaging.loginUser(jwt)
+                    result.success("done")
                 } catch (err: Throwable) {
                     println("$tag - Messaging::login invalid arguments. {'jwt': '<your_jwt>'} expected !")
                     println(err.message)
+                    result.error("error","$tag - Messaging::login invalid arguments. {'jwt': '<your_jwt>'} expected ! ${err.message}",null)
                     return
                 }
             }
             "logoutUser" -> {
                 if (!isInitialize) {
-                    println("$tag - Messaging needs to be initialized first")
+                    result.error("error","$tag - Messaging needs to be initialized first",null)
                     return
                 }
                 zendeskMessaging.logoutUser()
+                result.success("done")
             }
             else -> {
                 result.notImplemented()
             }
-        }
-
-        if (sendData != null) {
-            result.success(sendData)
-        } else {
-            result.success(0)
         }
     }
 

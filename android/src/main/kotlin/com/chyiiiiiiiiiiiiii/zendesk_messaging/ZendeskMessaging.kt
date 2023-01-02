@@ -1,4 +1,5 @@
 import android.content.Intent
+import android.util.Log
 import com.chyiiiiiiiiiiiiii.zendesk_messaging.ZendeskMessagingPlugin
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.Dispatchers
@@ -8,8 +9,9 @@ import zendesk.android.Zendesk
 import zendesk.android.ZendeskResult
 import zendesk.android.ZendeskUser
 import zendesk.messaging.android.DefaultMessagingFactory
+import io.flutter.plugin.common.MethodChannel.Result
 
-class ZendeskMessaging(private val plugin: ZendeskMessagingPlugin, private val channel: MethodChannel) {
+class ZendeskMessaging(private val plugin: ZendeskMessagingPlugin, private val channel: MethodChannel,private val result: Result) {
     companion object {
         const val tag = "[ZendeskMessaging]"
 
@@ -23,18 +25,19 @@ class ZendeskMessaging(private val plugin: ZendeskMessagingPlugin, private val c
     }
 
     fun initialize(channelKey: String) {
-        println("$tag - Channel Key - $channelKey")
+        Log.i(tag,"Channel Key - $channelKey")
         Zendesk.initialize(
             plugin.activity!!,
             channelKey,
             successCallback = { value ->
                 plugin.isInitialize = true;
-                println("$tag - initialize success - $value")
+                result.success("initialize success - $value")
                 channel.invokeMethod(initializeSuccess, null)
             },
             failureCallback = { error ->
                 plugin.isInitialize = false;
-                println("$tag - initialize failure - $error")
+                 Log.i(tag,"initialize failure - $error")
+                result.error("error","initialize failure - $error",null)
                 channel.invokeMethod(initializeFailure, mapOf("error" to error.message))
             },
             messagingFactory = DefaultMessagingFactory()
@@ -43,7 +46,8 @@ class ZendeskMessaging(private val plugin: ZendeskMessagingPlugin, private val c
 
     fun show() {
         Zendesk.instance.messaging.showMessaging(plugin.activity!!, Intent.FLAG_ACTIVITY_NEW_TASK)
-        println("$tag - show")
+        result.success("show")
+         Log.i(tag,"show")
     }
 
     fun loginUser(jwt: String) {
@@ -57,8 +61,8 @@ class ZendeskMessaging(private val plugin: ZendeskMessagingPlugin, private val c
                 }
             },
             { error: Throwable? ->
-                println("$tag - Login failure : ${error?.message}")
-                println(error)
+                 Log.i(tag,"Login failure : ${error?.message}")
+                 Log.i(tag,error.toString())
                 channel.invokeMethod(loginFailure, mapOf("error" to error?.message))
             })
     }
@@ -73,7 +77,7 @@ class ZendeskMessaging(private val plugin: ZendeskMessagingPlugin, private val c
                     channel.invokeMethod(logoutSuccess, null)
                 }
             } catch (error: Throwable) {
-                println("$tag - Logout failure : ${error.message}")
+                 Log.i(tag,"Logout failure : ${error.message}")
                 channel.invokeMethod(logoutFailure, mapOf("error" to error.message))
             }
         }
