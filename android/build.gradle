@@ -18,7 +18,8 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://zendesk.jfrog.io/zendesk/repo' }
+//        maven { url 'https://zendesk.jfrog.io/zendesk/repo' }
+        maven {        url "https://zendesk.jfrog.io/artifactory/repo"    }
     }
 }
 

@@ -37,7 +37,8 @@ class ZendeskMessaging(private val plugin: ZendeskMessagingPlugin, private val c
             failureCallback = { error ->
                 plugin.isInitialize = false;
                  Log.i(tag,"initialize failure - $error")
-                result.error("error","initialize failure - $error",null)
+                error.message
+                result.error("error","initialize failure - ${error.message}",null)
                 channel.invokeMethod(initializeFailure, mapOf("error" to error.message))
             },
             messagingFactory = DefaultMessagingFactory()
